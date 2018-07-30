@@ -1,0 +1,56 @@
+# Migration configuration for imported images.
+id: images
+label: Import an XML feed of images
+
+migration_group: opentext
+migration_dependencies: {}
+dependencies:
+  enforced:
+    module:
+      - opentext_migrate
+
+destination:
+  plugin: entity:file
+
+source:
+  plugin: url
+  data_fetcher_plugin: http
+  data_parser_plugin: xml
+  constants:
+    source_base_path: 'https://www.dartmouth-hitchcock.org/'
+url: https://www.dartmouth-hitchcock.org/shared/stories/images/
+
+  ids:
+    id:
+      type: string
+
+  item_selector: included/
+
+  fields:
+    -
+      name: uri
+      label: 'Uri'
+      selector: image_uri
+    # -
+    #   name: url
+    #   label: 'Url'
+    #   selector: /attributes/url
+
+process:
+
+  filename: filename
+  filemime: filemime
+
+  source_full_path:
+    plugin: concat
+    delimiter: /
+    source:
+      - 'constants/source_base_path'
+      - url
+  uri:
+    plugin: download
+    source:
+      - '@source_full_path'
+      - uri
+    guzzle_options:
+      base_uri: 'constants/source_base_path'

@@ -1,0 +1,12 @@
+id: opentext
+label: OpenText Imports
+description: 'Migration for OpenText stories from XML sources.'
+source_type: XML
+shared_configuration:
+  source:
+    key: default
+module: null
+dependencies:
+  enforced:
+    module:
+      - opentext_migrate

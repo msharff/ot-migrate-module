@@ -1,0 +1,185 @@
+# This migration demonstrates importing from a monolithic XML file.
+id: stories
+label: XML feed of stories
+migration_group: opentext
+
+migration_dependencies:
+  required:
+    - images
+    - channels
+
+destination:
+  plugin: entity:node
+dependencies:
+  enforced:
+    module:
+      - opentext_migrate
+
+source:
+  # We use the XML data parser plugin.
+  plugin: url
+  data_fetcher_plugin: http
+  data_parser_plugin: xml
+  # Normally, this is one or more fully-qualified URLs or file paths. Because
+  # we can't hardcode your local URL, we provide a relative path here which
+  # hook_install() will rewrite to a full URL for the current site.
+  urls: public://story-export-7-26.xml
+  # Visit the URL above (relative to your site root) and look at it. You can see
+  # that <response> is the outer element, and each item we want to import is a
+  # <position> element. The item_xpath value is the xpath to use to query the
+  # desired elements.
+  item_selector: /story
+  # Under 'fields', we list the data items to be imported. The first level keys
+  # are the source field names we want to populate (the names to be used as
+  # sources in the process configuration below). For each field we're importing,
+  # we provide a label (optional - this is for display in migration tools) and
+  # an xpath for retrieving that value. It's important to note that this xpath
+  # is relative to the elements retrieved by item_xpath.
+  fields:
+    -
+      name: story_id
+      label: 'Story ID'
+      selector: story_id
+    -
+      name: blurb
+      label: 'Blurb'
+      selector: blurb
+  -
+      name: meta_keywords
+      label: 'Keywords'
+      selector: meta_keywords
+    -
+      name: meta_description
+      label: 'Description'
+      selector: meta_description
+    -
+      name: headline
+      label: 'Headline'
+      selector: headline_main
+    -
+      name: date
+      label: 'Date'
+      selector: date_story
+    -
+      name: body
+      label: 'Body'
+      selector: bodytext
+
+    -
+      name: author
+      label: 'Author'
+      selector: author_story
+    -
+      name: photographer
+      label: 'Photographer'
+      selector: photographer_story  
+      -
+      name: channel
+      label: 'Channel'
+      selector: channel
+    -
+      name: category
+      label: 'Category'
+      selector: category
+    -
+      name: tag
+      label: 'Tag'
+      selector: tag
+    -
+      name: pullquote_attribution
+      label: 'Pullquote Attribution'
+      selector: pullquote_attribution
+    -
+      name: pullquote
+      label: 'Pullquote'
+      selector: pullquote
+    -
+      name: image
+      label: 'Image'
+      selector: image_uri
+    -
+      name: image_caption
+      label: 'Image Caption'
+      selector: image_caption
+    -
+      name: video
+      label: 'Video'
+      selector: video_uri
+    -
+      name: video_caption
+      label: 'Video Caption'
+      selector: video_caption
+
+
+  # Under 'ids', we identify source fields populated above which will uniquely
+  # identify each imported item. The 'type' makes sure the migration map table
+  # uses the proper schema type for stored the IDs.
+  ids:
+    story_id:
+      type: integer
+
+process:
+  # Note that the source field names here (machine_name and friendly_name) were
+  # defined by the 'fields' configuration for the source plugin above.
+  type:
+    plugin: default_value
+    default_value: story
+
+  field_opentext_id: id
+  title: headline
+  body/value:
+    plugin: extract
+    source: body
+    index:
+      - value
+  body/format:
+    plugin: extract
+    source: body
+    index:
+      - format
+  field_opentext_story_date: date
+  fieldcutline/value: blurb
+  field_authored_by: author
+  field_photography_by: photographer
+  field_opentext_category: 
+    -
+     plugin: explode
+     source: category
+     delimiter: ,
+
+  field_channels:
+    -
+      plugin: explode
+      source: channel
+      delimiter: ,
+    -
+      plugin: migration_lookup
+      migration: channels
+
+  field_opentext_tag:
+    -
+      plugin: explode
+      source: tag
+      delimiter: ,
+
+  field_pullquote/value:
+    plugin: extract
+    source: pullquote
+    index:
+      - value
+  field_pullquote/format:
+    plugin: extract
+    source: pullquote
+    index:
+      - format
+
+  field_pullquote_attribution: pullquote_attribution
+
+  field_featured_image:
+    plugin: migration_lookup
+    migration: images
+    source: image_uri
+
+  field_featured_image_caption: image_caption
+
+

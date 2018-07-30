@@ -1,0 +1,58 @@
+id: channels
+label: Import a feed of taxonomy channels
+migration_group: opentext
+
+destination:
+  plugin: entity:taxonomy_term
+dependencies:
+  enforced:
+    module:
+      - opentext_migrate
+
+source:
+
+  plugin: url
+  data_fetcher_plugin: http
+  data_parser_plugin: xml
+  urls: public://story-export-7-26.xml
+
+  # Visit the URL above (relative to your site root) and look at it. You can see
+  # that <response> is the outer element, and each item we want to import is a
+  # <position> element. The item_selector value is the selector to use to query the
+  # desired elements from the root of the data.
+  item_selector: /story
+
+  # Under 'fields', we list the data items to be imported. The first level keys
+  # are the source field names we want to populate (the names to be used as
+  # sources in the process configuration below). For each field we're importing,
+  # we provide a label (optional - this is for display in migration tools) and
+  # a selector for retrieving that value. It's important to note that this selector
+  # is relative to the elements retrieved by item_selector.
+  #
+  # This is a pretty simple example but note that it does not manage the issues around
+  # migrating hierarchical taxonomies, which is a whole other can of worms.
+  fields:
+    -
+      name: name
+      label: 'Name'
+      selector: name
+    -
+
+  # Under 'ids', we identify source fields populated above which will uniquely
+  # identify each imported item. The 'type' makes sure the migration map table
+  # uses the proper schema type for stored the IDs.
+  ids:
+    # id:
+    name:
+      type: string
+
+process:
+  # Note that the source field names here (machine_name and friendly_name) were
+  # defined by the 'fields' configuration for the source plugin above.
+  vid:
+    plugin: default_value
+    default_value: channels
+
+  name: name
+
+

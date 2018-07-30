@@ -1,0 +1,8 @@
+<?php
+/**
+ * Implements hook_uninstall().
+ */
+function opentext_migrate_uninstall() {
+  db_query("DELETE FROM {config} WHERE name LIKE 'migrate.migration_plus.opentext_migrate%'");
+  drupal_flush_all_caches();
+}
